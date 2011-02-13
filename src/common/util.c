@@ -16,7 +16,6 @@
 /*
  * getopt() defines and lib variables
  */
-
 extern char *optarg;
 extern int optind, opterr, optopt;
 
@@ -73,7 +72,7 @@ int parse_peer_params(int argc, char ** argv,
 "       supervisor -f <config-file> [-r <concurency ratio>] [-c <cproc_count>]\n"\
 "                  [-t <sec interval>]\n"\
 "                  [-o <out-logfile>]\n"\
-" Note: concurent proc count takes precedence over the the concurenct ratio."
+" Note: concurrent proc. count takes precedence over the the concurency ratio."
 
 
 #define SUPERVISOR_OPT_STRING "f:t:r:c:o:"
@@ -246,7 +245,7 @@ int parse_file(const char * fname, proc_id_t p_id,
         
         /* 
          * Only for this proc_id parse link speeds,
-         * wich can have sufixes of K,M,G case insensitive
+         * which can have suffixes of K,M,G case insensitive
          */
         if (ix == p_id && ix > 0) {
             while (jx < prc_count && NULL != (tok = strtok(NULL, TOK_DELIM))) {
@@ -292,13 +291,13 @@ int open_listen_socket (proc_id_t p_id, link_info_t * const nodes, size_t nodes_
     int max_nodes = nodes_count;
     
     if (p_id < 0 || p_id > max_nodes) {
-        dbg_err("process id out of bounds: %llu not int [0..%d]", p_id, max_nodes);
+        dbg_err("process id out of bounds: %llu not in [0..%d]", p_id, max_nodes);
         res = -1;
         goto end;
     }
     
     if (1 > (nodes[p_id].sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))) {
-        dbg_err("Could not alocate socket");
+        dbg_err("Could not allocate socket");
         res = -1;
         goto end;
     }
@@ -321,9 +320,11 @@ end:
     return res;
 }
 
-uint64 get_msg_delay_usec(uint64 link_speed, size_t msg_length)
+#define NANOS_PER_SECOND (1000 * 1000 * 1000)
+
+uint64 get_msg_delay_nsec(uint64 link_speed, size_t msg_length)
 {
-    return (msg_length * 1000000 / link_speed);
+    return (msg_length * NANOS_PER_SECOND / link_speed);
 }
 
 /*
@@ -333,7 +334,7 @@ timespec_t timespec_delta (timespec_t start, timespec_t end) {
 	timespec_t temp;
 	if ((end.tv_nsec - start.tv_nsec) < 0) {
 		temp.tv_sec  = end.tv_sec  - start.tv_sec - 1;
-		temp.tv_nsec = end.tv_nsec - start.tv_nsec + 1000000000;
+		temp.tv_nsec = end.tv_nsec - start.tv_nsec + NANOS_PER_SECOND;
 	} else {
 		temp.tv_sec  = end.tv_sec  - start.tv_sec;
 		temp.tv_nsec = end.tv_nsec - start.tv_nsec;
@@ -348,37 +349,38 @@ timespec_t timespec_delta (timespec_t start, timespec_t end) {
  */
 
 timespec_t timespec_avg (timespec_t * tsarray, size_t len) {
-	timespec_t avgts;
-	int64 summ_sec = 0;
-	int64 summ_nsec = 0;
-	int64 avg_sec = 0;
-	int64 avg_nsec = 0;
-	size_t ix;
+    timespec_t avgts;
+    int64 summ_sec = 0;
+    int64 summ_nsec = 0;
+    int64 avg_sec = 0;
+    int64 avg_nsec = 0;
+    size_t ix;
 
-	avgts.tv_sec = avgts.tv_nsec = 0;
+    avgts.tv_sec = 0;
+    avgts.tv_nsec = 0;
 
-	if (!tsarray) {
-		return avgts;
-	}
+    if (!tsarray || len == 0) {
+        return avgts;
+    }
 
-	for (ix = 0 ; ix < len; ix++) {
-		/* This will overflow if the tv_sec are too large */
-		summ_sec += tsarray[ix].tv_sec;
-		summ_nsec += tsarray[ix].tv_nsec;
-	}
+    for (ix = 0 ; ix < len; ix++) {
+        /* This will overflow if the tv_sec are too large */
+        summ_sec += tsarray[ix].tv_sec;
+        summ_nsec += tsarray[ix].tv_nsec;
+    }
 
-	avg_nsec = (summ_nsec + (summ_sec % len) * 1000000000) / len;
-	avg_sec = summ_sec / len;
+    avg_nsec = (summ_nsec + (summ_sec % len) * NANOS_PER_SECOND) / len;
+    avg_sec = summ_sec / len;
 
-	if (avg_nsec > 1000000000) {
-		avg_sec += avg_nsec / 1000000000;
-		avg_nsec = avg_nsec % 1000000000;
-	}
+    if (avg_nsec > NANOS_PER_SECOND) {
+        avg_sec += avg_nsec / NANOS_PER_SECOND;
+        avg_nsec = avg_nsec % NANOS_PER_SECOND;
+    }
 
-	avgts.tv_sec = avg_sec;
-	avgts.tv_nsec = avg_nsec;
+    avgts.tv_sec = avg_sec;
+    avgts.tv_nsec = avg_nsec;
 
-	return avgts;
+    return avgts;
 }
 
 

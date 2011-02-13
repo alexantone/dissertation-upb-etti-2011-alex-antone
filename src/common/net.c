@@ -128,7 +128,7 @@ int dme_broadcast_msg (uint8 * buff, size_t len, char * const msctext) {
 
 
 /* 
- * Recieve a message and return an allocated buffer and length.
+ * Receive a message and return an allocated buffer and length.
  * The buffer MUST BE DEALLOCATED in the calling function!
  */
 
@@ -148,7 +148,7 @@ int dme_recv_msg(uint8 ** out_buff, size_t * out_len)
         return ERR_RECV_MSG;
     }
     
-    /* Recieve the real data */
+    /* Receive the real data */
     if (len != recv(nodes[proc_id].sock_fd, *out_buff, len, 0)) {
         dbg_err("The expected packet length has changed! How did this happen??");
         safe_free(*out_buff);
@@ -174,7 +174,7 @@ int dme_header_set(dme_message_hdr_t * const hdr, unsigned int msgtype,
     hdr->process_id = htonq(proc_id);
     hdr->msg_type = htons((uint16)msgtype);
     hdr->length = htons((uint16)msglen);
-    hdr->flags = htons((uint16)flags);;
+    hdr->flags = htons((uint16)flags);
     
     return 0;
 }
@@ -212,7 +212,7 @@ int sup_msg_set(sup_message_t * const msg, unsigned int msgtype,
 }
 
 /*
- * Parse a recieved DME message. The space must be allready allocated in 'hdr'.
+ * Parse a received DME message. The space must be already allocated in 'hdr'.
  */
 int dme_header_parse(buff_t buff, dme_message_hdr_t * const msg)
 {
@@ -226,13 +226,13 @@ int dme_header_parse(buff_t buff, dme_message_hdr_t * const msg)
     msg->process_id = ntohq(src->process_id);
     msg->msg_type = ntohs(src->msg_type);
     msg->length = ntohs(src->length);
-    msg->flags = ntohs(src->flags);;
+    msg->flags = ntohs(src->flags);
     
     return 0;
 }
 
 /*
- * Parse a recieved SUP message. The space must be allready allocated in 'msg'.
+ * Parse a received SUP message. The space must be already allocated in 'msg'.
  */
 int sup_msg_parse(buff_t buff, sup_message_t * const msg)
 {

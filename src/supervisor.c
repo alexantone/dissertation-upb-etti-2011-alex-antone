@@ -20,7 +20,7 @@
 #include <common/fsm.h>
 
 /* 
- * global vars, defined in each app
+ * global vars, defined in each app.
  * Don't forget to declare them in each ".c" file
  * The supervisor always has proc_id = 0
  */
@@ -38,10 +38,11 @@ static FILE * log_fh;
 
 static unsigned int election_interval = 10;     /* time in seconds to rerun election */
 static unsigned int concurency_ratio = 50;      /* value in percent of total processes */
+static unsigned int critical_sect_time = 5;		/* Duration of the critical section */
 static unsigned int max_concurrent_proc = 0;    /* This will be computed in main() */
 static bool_t fixed_concurent_num = FALSE;
-static unsigned int test_number = 0;			/* The current concurency test */
 
+static unsigned int test_number = 0;			/* The current concurrency test */
 static timespec_t tstamp_last_exited;
 static timespec_t tstamp_supervisor_start;
 
@@ -49,6 +50,10 @@ static timespec_t * synchro_delays;
 static timespec_t * response_times;
 static unsigned int elected_proc_count;
 static unsigned int received_resps_count;
+
+#define log_msg(format, args...) \
+        fprintf(log_fh, format "\n", ##args)
+
 /* 
  * trigger_critical_region()
  * 
@@ -80,9 +85,6 @@ static void randomizer_init(void) {
 	}
 	srandom(seed);
 }
-
-#define log_msg(format, args...) \
-        fprintf(log_fh, format "\n", ##args)
 
 /*
  * Returns a random pid in [1..nodes_count]
@@ -161,7 +163,7 @@ int do_work(void * cookie) {
     				avg_synchro_time.tv_sec, avg_synchro_time.tv_nsec,
     				avg_resp_time.tv_sec, avg_resp_time.tv_nsec);
 
-    		/* List the synchro delays */
+    		/* List the synchronization delays */
     		memset(strbuff, 0, sizeof(strbuff));
     		px = strbuff;
     		for (ix = 0; ix < elected_proc_count; ix++) {
@@ -218,7 +220,7 @@ int do_work(void * cookie) {
             }
             
             /* 
-             * This process id was not elected before. Add it to te list.
+             * This process id was not elected before. Add it to the list.
              * Else replay the loop.
              */
             if (!found) {
@@ -230,7 +232,7 @@ int do_work(void * cookie) {
         
         /* Trigger the elected processes to compete for the critical region */
         for (ix = 0; ix < concurrent_count; ix++) {
-            trigger_critical_region(pid_arr[ix],5,0);
+            trigger_critical_region(pid_arr[ix], critical_sect_time, 0);
             nodes[pid_arr[ix]].state = PS_PENDING;
         }
     } else {
@@ -360,7 +362,7 @@ int main(int argc, char *argv[])
 
 
     /*
-     * Init connections (open listenning socket)
+     * Init connections (open listening socket)
      */
     if (0 != (res = open_listen_socket(proc_id, nodes, nodes_count))) {
         dbg_err("open_listen_socket() returned nonzero status:%d", res);
@@ -385,20 +387,20 @@ int main(int argc, char *argv[])
     /* Start working; mark time */
     clock_gettime(CLOCK_REALTIME, &tstamp_supervisor_start);
 
-    queue_event(DME_SEV_SYNCRO, &tstamp_supervisor_start);
+    handle_event(DME_SEV_SYNCRO, &tstamp_supervisor_start);
     sleep(1);
 
-    queue_event(DME_SEV_PERIODIC_WORK, NULL);
+    handle_event(DME_SEV_PERIODIC_WORK, NULL);
 
     /*
-     * Main loop: just sit here and wait for interrups.
+     * Main loop: just sit here and wait for interrupts.
      * All work is done in interrupt handlers mapped to registered functions.
      */
     wait_events();
     
 end:
     /*
-     * Do cleanup (dealocating dynamic strucutres)
+     * Do cleanup (deallocating dynamic structures)
      */
     deinit_handlers();
 
