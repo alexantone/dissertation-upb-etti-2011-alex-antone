@@ -35,7 +35,7 @@ bool_t exit_request = FALSE;
 
 /* Other vars */
 static struct timespec sup_tstamp;      /* used for performance measurements */
-static uint32 critical_region_simulated_duration = 5;
+static uint32 critical_region_simulated_duration;
 
 /*
  * Algorithm Specifics
@@ -60,8 +60,8 @@ const char * msg_type_tostr(int mtype) {
 
 
 /*
- * Generic alg. message structure.
- * Every alg. should include the common header.
+ * Generic algorithm message structure.
+ * Every algorithm should include the common header.
  */
 struct generic_message_s {
     /* common header */
@@ -83,7 +83,7 @@ typedef struct generic_message_s generic_message_t;
 /* struct <generic> ... */
 
 /*
- * Helper functions (porcess specific structures,parse messages etc.).
+ * Helper functions (process specific structures,parse messages etc.).
  */
 
 /* func1 ... */
@@ -223,7 +223,7 @@ static int handle_supervisor_msg(void * cookie) {
 /*
  * This is the algortihm's implementation
  * Note: the FSM state transition should be done with handle_event(ev, cookie)
- *       and whould be the last operation in the logical flow of the function.
+ *       and would be the last operation in the logical flow of the function.
  *       This in needed to assure that no other message processing is handled
  *       between the state change decision and the actual state change.
  */

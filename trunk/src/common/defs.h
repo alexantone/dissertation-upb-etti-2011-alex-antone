@@ -107,7 +107,7 @@ typedef struct buff_s {
 /*
  * Debugging macros
  */
-#define DEBUGING_ENABLED 1
+#define DEBUGING_ENABLED 0
 #if DEBUGING_ENABLED
 
 #define dbg_msg(format, args...) \
