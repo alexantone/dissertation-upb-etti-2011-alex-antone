@@ -37,6 +37,7 @@ static FILE * log_fh;
 
 
 static unsigned int election_interval = 10;     /* time in seconds to rerun election */
+static unsigned int number_of_runs = 1;         /* Number of tests to perform */
 static unsigned int concurency_ratio = 50;      /* value in percent of total processes */
 static unsigned int critical_sect_time = 5;		/* Duration of the critical section */
 static unsigned int max_concurrent_proc = 0;    /* This will be computed in main() */
@@ -203,6 +204,12 @@ int do_work(void * cookie) {
         clock_gettime(CLOCK_REALTIME, &tstamp_last_exited);
     	test_number++;
 
+    	/* Did we reach the number of tests to perform */
+    	if (test_number > number_of_runs) {
+    	    handle_event(DME_SEV_ENDSIMULATION, NULL);
+    	    return 0;
+    	}
+
     	/* Start the test */
     	dbg_msg("Critical region is free. Starting election process for %d processes.",
     			concurrent_count);
@@ -330,7 +337,7 @@ int main(int argc, char *argv[])
     
     if (0 != (res = parse_sup_params(argc, argv, &fname, &logfname,
                                      &concurency_ratio, &max_concurrent_proc,
-                                     &election_interval))) {
+                                     &election_interval, &number_of_runs))) {
         dbg_err("parse_args() returned nonzero status:%d", res);
         goto end;
     }

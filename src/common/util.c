@@ -70,18 +70,19 @@ int parse_peer_params(int argc, char ** argv,
 #define SUPERVISOR_USAGE_MESSAGE \
 "Usage:\n"\
 "       supervisor -f <config-file> [-r <concurency ratio>] [-c <cproc_count>]\n"\
-"                  [-t <sec interval>]\n"\
+"                  [-t <sec interval>] [-s <number of runs>]\n"\
 "                  [-o <out-logfile>]\n"\
 " Note: concurrent proc. count takes precedence over the the concurency ratio."
 
 
-#define SUPERVISOR_OPT_STRING "f:t:r:c:o:"
+#define SUPERVISOR_OPT_STRING "f:t:r:c:o:s:"
 extern int parse_sup_params(int argc, char * argv[],
                             char ** out_fname,
                             char ** out_logfname,
                             uint32 *out_concurency_ratio,
                             uint32 *out_concurent_count,
-                            uint32 *out_election_interval)
+                            uint32 *out_election_interval,
+                            uint32 *out_number_of_runs)
 {
     char optchar = '\0';
     bool_t file_provided = FALSE;
@@ -130,6 +131,16 @@ extern int parse_sup_params(int argc, char * argv[],
                 err = TRUE;
             } else {
                 *out_election_interval = testval;
+            }
+            break;
+
+        case 's':
+            testval = strtoul(optarg, NULL, BASE_10);
+            if (testval < 1) {
+                fprintf(stderr, "Number of runs must be at least 1.\n");
+                err = TRUE;
+            } else {
+                *out_number_of_runs = testval;
             }
             break;
 
