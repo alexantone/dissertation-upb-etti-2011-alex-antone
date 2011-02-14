@@ -212,11 +212,17 @@ static int handle_supervisor_msg(void * cookie) {
         return ERR_RECV_MSG;
     }
 
+    /* record the time */
+    clock_gettime(CLOCK_REALTIME, &sup_tstamp);
+    ret = sup_msg_parse(*buff, &srcmsg);
+
+    if (srcmsg.msg_type == DME_SEV_ENDSIMULATION) {
+        exit_request = TRUE;
+        return ret;
+    }
+
     switch(fsm_state) {
     case PS_IDLE:
-        /* record the time */
-        clock_gettime(CLOCK_REALTIME, &sup_tstamp);
-        sup_msg_parse(*buff, &srcmsg);
 
         if (srcmsg.msg_type == DME_SEV_SYNCRO) {
             sup_syncro.tv_sec = srcmsg.sec_tdelta;

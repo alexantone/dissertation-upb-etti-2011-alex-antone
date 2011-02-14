@@ -75,6 +75,7 @@ typedef enum dme_evt_e {
 #define DME_SEV_MSG_IN DME_EV_SUP_MSG_IN   /* the supervisor uses only SUP messages */
     DME_SEV_PERIODIC_WORK,
     DME_SEV_SYNCRO,
+    DME_SEV_ENDSIMULATION,
     
     /* 
      * Events greater than are DME_INTERNAL_EV_START registered statically.

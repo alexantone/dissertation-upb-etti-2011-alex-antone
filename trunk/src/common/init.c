@@ -23,7 +23,8 @@ extern int    err_code;
 extern bool_t exit_request;
 
 /* Forward declaration */
-static int net_demux(void * cookie);
+static int net_demux(void *cookie);
+static int end_simulation(void *cookie);
 
 typedef struct dme_ev_reg_s {
     dme_ev_t           der_event;
@@ -59,6 +60,7 @@ static dme_ev_reg_t func_registry[] = {
     { DME_SEV_MSG_IN, null_func },
     { DME_SEV_PERIODIC_WORK, null_func },
     { DME_SEV_SYNCRO, null_func },
+    { DME_SEV_ENDSIMULATION, end_simulation },
 
     /* Internal events are registered statically */
     { DME_IEV_PACK_IN, net_demux },
@@ -78,6 +80,7 @@ const char * evtostr (dme_ev_t event) {
 
 	case DME_SEV_PERIODIC_WORK: return "DME_SEV_PERIODIC_WORK";
 	case DME_SEV_SYNCRO: return "DME_SEV_SYNCRO";
+	case DME_SEV_ENDSIMULATION: return "DME_SEV_ENDSIMULATION";
 
 	case DME_IEV_PACK_IN: return "DME_IEV_PACK_IN";
 	}
@@ -267,8 +270,16 @@ static int net_demux(void * cookie)
     return err;
 }
 
-
-
+/*
+ * end_simulation()
+ *
+ * By default, ends the current process.
+ */
+static int end_simulation(void *cookie)
+{
+    dbg_msg("Exit requested.");
+    exit_request = TRUE;
+}
 
 /* 
  * Events functions
@@ -412,8 +423,7 @@ void wait_events(void)
         } else if (signo == SIGRT_TIMEREXP) {
         	timer_expire_handler(signo, &sinfo, NULL);
         } else if (signo == SIGTSTP){
-        	dbg_msg("Forced exit!");
-        	exit_request = TRUE;
+      	    handle_event(DME_SEV_ENDSIMULATION, NULL);
         } else {
         	/* Ignore */
         }
