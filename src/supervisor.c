@@ -244,6 +244,22 @@ int do_work(void * cookie) {
     schedule_event(DME_SEV_PERIODIC_WORK, election_interval, 0, NULL);
 }
 
+int end_simulation(void * cookie) {
+    sup_message_t msg = {};
+    char msctext[MAX_MSC_TEXT] = {};
+    uint8 * buff = (uint8 *) &msg;
+    timespec_t ts_syncro;
+    timespec_t *pts = NULL;
+
+    sup_msg_set(&msg, DME_SEV_ENDSIMULATION, 0, 0, 0,
+                msctext, sizeof(msctext));
+
+    dme_broadcast_msg(buff, SUPERVISOR_MESSAGE_LENGTH, msctext);
+
+    exit_request = TRUE;
+    return 0;
+}
+
 /* Process incoming messages */
 int process_messages(void * cookie)
 {
@@ -379,10 +395,11 @@ int main(int argc, char *argv[])
     
     register_event_handler(DME_SEV_PERIODIC_WORK, do_work);
     register_event_handler(DME_SEV_SYNCRO, syncro);
+    register_event_handler(DME_SEV_ENDSIMULATION, end_simulation);
     register_event_handler(DME_SEV_MSG_IN, process_messages);
 
     /* wait for peers processes to init, then kick start the supervisor */
-    sleep(5);
+    sleep(1);
     
     /* Start working; mark time */
     clock_gettime(CLOCK_REALTIME, &tstamp_supervisor_start);

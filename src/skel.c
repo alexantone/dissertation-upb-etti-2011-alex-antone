@@ -171,7 +171,7 @@ static int supervisor_send_inform_message(dme_ev_t ev) {
 
 /*
  * Event handler functions.
- * These functions must properly free the cookie recieved, except fo the
+ * These functions must properly free the cookie received, except for the
  * DME_EV_SUP_MSG_IN and DME_EV_PEER_MSG_IN.
  */
 
@@ -187,12 +187,16 @@ static int handle_supervisor_msg(void * cookie) {
         dbg_err("Message is empty!");
         return ERR_RECV_MSG;
     }
+    /* record the time */
+    clock_gettime(CLOCK_REALTIME, &sup_tstamp);
+    ret = sup_msg_parse(*buff, &srcmsg);
 
+    if (srcmsg.msg_type == DME_SEV_ENDSIMULATION) {
+        exit_request = TRUE;
+        return ret;
+    }
     switch(fsm_state) {
     case PS_IDLE:
-        /* record the time */
-        clock_gettime(CLOCK_REALTIME, &sup_tstamp);
-        sup_msg_parse(*buff, &srcmsg);
 
         if (srcmsg.msg_type == DME_SEV_SYNCRO) {
             sup_syncro.tv_sec = srcmsg.sec_tdelta;
@@ -276,7 +280,7 @@ int process_ev_want_cr(void * cookie)
     dbg_msg("Entered DME_EV_WANT_CRITICAL_REG");
 
     if (fsm_state != PS_IDLE) {
-        dbg_err("Fatal error: DME_EV_WANT_CRITICAL_REG occured while not in IDLE state.");
+        dbg_err("Fatal error: DME_EV_WANT_CRITICAL_REG occurred while not in IDLE state.");
         return (err = ERR_FATAL);
     }
 
@@ -302,7 +306,7 @@ int process_ev_entered_cr(void * cookie)
     dbg_msg("Entered DME_EV_ENTERED_CRITICAL_REG");
 
     if (fsm_state != PS_PENDING) {
-        dbg_err("Fatal error: DME_EV_ENTERED_CRITICAL_REG occured while not in PENDING state.");
+        dbg_err("Fatal error: DME_EV_ENTERED_CRITICAL_REG occurred while not in PENDING state.");
         return (err = ERR_FATAL);
     }
 
@@ -330,7 +334,7 @@ int process_ev_exited_cr(void * cookie)
     dbg_msg("Entered DME_EV_EXITED_CRITICAL_REG");
 
     if (fsm_state != PS_EXECUTING) {
-        dbg_err("Fatal error: DME_EV_EXITED_CRITICAL_REG occured while not in EXECUTING state.");
+        dbg_err("Fatal error: DME_EV_EXITED_CRITICAL_REG occurred while not in EXECUTING state.");
         return (err = ERR_FATAL);
     }
 
@@ -371,7 +375,7 @@ int main(int argc, char *argv[])
     /* struct genericstruct = calloc(...) */
 
     /*
-     * Init connections (open listenning socket)
+     * Init connections (open listening socket)
      */
     if (0 != (res = open_listen_socket(proc_id, nodes, nodes_count))) {
         dbg_err("open_listen_socket() returned nonzero status:%d", res);
@@ -386,7 +390,7 @@ int main(int argc, char *argv[])
         goto end;
     }
 
-    /* Register event handlers that will be called automatically on event occurence */
+    /* Register event handlers that will be called automatically on event occurrence */
     register_event_handler(DME_EV_SUP_MSG_IN, handle_supervisor_msg);
     register_event_handler(DME_EV_PEER_MSG_IN, handle_peer_msg);
     register_event_handler(DME_EV_WANT_CRITICAL_REG, process_ev_want_cr);
@@ -394,7 +398,7 @@ int main(int argc, char *argv[])
     register_event_handler(DME_EV_EXITED_CRITICAL_REG, process_ev_exited_cr);
 
     /*
-     * Main loop: just sit here and wait for interrupts (triggered by the supervisor).
+     * Main loop: just sit here and wait for events (triggered by the supervisor).
      * All work is done in interrupt handlers mapped to registered functions.
      */
     wait_events();
