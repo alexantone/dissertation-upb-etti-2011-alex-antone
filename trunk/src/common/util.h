@@ -33,7 +33,8 @@ extern int parse_sup_params(int argc, char * argv[],
                             char ** out_logfname,
                             uint32 *out_concurency_ratio,
                             uint32 *out_concurent_count,
-                            uint32 *out_election_interval);
+                            uint32 *out_election_interval,
+                            uint32 *out_number_of_runs);
 
 extern int parse_file(const char * fname, proc_id_t p_id,
                link_info_t * out_nodes[], size_t * out_nodes_count);
