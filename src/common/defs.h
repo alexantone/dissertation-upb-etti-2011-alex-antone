@@ -108,15 +108,15 @@ typedef struct buff_s {
 /*
  * Debugging macros
  */
-#define DEBUGING_ENABLED 0
+#define DEBUGING_ENABLED 1
 #if DEBUGING_ENABLED
 
 #define dbg_msg(format, args...) \
-fprintf(stdout, "debug: %24s:%4d %24s() -> " format "\n",\
+fprintf(stdout, "#debug: %24s:%4d %24s() -> " format "\n",\
 		__FILE__, __LINE__, __func__, ##args)
 
 #define dbg_err(format, args...) \
-fprintf(stderr, "error: %24s:%4d %24s() -> " format "\n",\
+fprintf(stderr, "#error: %24s:%4d %24s() -> " format "\n",\
 		__FILE__, __LINE__, __func__, ##args)
 
 #else
