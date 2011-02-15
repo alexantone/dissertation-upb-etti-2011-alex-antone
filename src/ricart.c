@@ -292,12 +292,14 @@ static int handle_peer_msg(void * cookie) {
             if ( srcmsg.tstamp_sec > my_tstamp_sec){
                 ricart_RD[(unsigned int)srcmsg.pid] = 1;
             }else if ( srcmsg.tstamp_sec < my_tstamp_sec){
+                ricart_RD[(unsigned int)srcmsg.pid] = 0;
                 ricart_msg_set(&dstmsg, MTYPE_REPLY, msctext, sizeof(msctext));
                 dme_send_msg(srcmsg.pid, (uint8*)&dstmsg, RICART_MSG_LEN, msctext);
                 dbg_msg("sending REPLY msg to %llu\n",srcmsg.pid);
             }else if ( srcmsg.tstamp_nsec > my_tstamp_nsec){
                 ricart_RD[(unsigned int)srcmsg.pid] = 1;
             }else if ( srcmsg.tstamp_nsec < my_tstamp_nsec){
+                ricart_RD[(unsigned int)srcmsg.pid] = 0;
                 ricart_msg_set(&dstmsg, MTYPE_REPLY, msctext, sizeof(msctext));
                 dme_send_msg(srcmsg.pid, (uint8*)&dstmsg, RICART_MSG_LEN, msctext);
                 dbg_msg("sending REPLY msg to %llu\n",srcmsg.pid);
