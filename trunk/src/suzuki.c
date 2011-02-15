@@ -364,7 +364,7 @@ static int handle_peer_msg(void * cookie) {
             	suzuki_RN[srcmsg.pid] = srcmsg.req_no;
 			}
         } else if (srcmsg.type == MTYPE_REPLY){
-            dbg_err("Received a REPLY message");
+            dbg_msg("Received a REPLY message");
             i_have_token = TRUE;
             my_token = srcmsg.token;
             //start executing
